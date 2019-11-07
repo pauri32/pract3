@@ -78,9 +78,19 @@ int main(int argc, const char *argv[]) {
     f0.push_back(f);
   }
 
-  /// \TODO
+  /// \HECHO
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
   /// or time-warping may be used.
+  int L = 3;
+  float medianwindow[L];
+  for (int i = 0; i < x.size(); i++) {
+    for(int j = 0; j < L; j++){
+      medianwindow[j] = x[i-1+j];
+    }
+    sort(medianwindow, medianwindow+L);
+    if (L % 2 != 0) x[i] = (float)medianwindow[L / 2];
+    else  x[i] = (float)(medianwindow[(L - 1) / 2] + medianwindow[L / 2]) / 2.0;
+  }
 
   // Write f0 contour into the output file
   ofstream os(output_txt);

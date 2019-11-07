@@ -9,13 +9,17 @@ using namespace std;
 /// Name space of UPC
 namespace upc {
   void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) const {
-
     for (unsigned int l = 0; l < r.size(); ++l) {
-  		/// \TODO Compute the autocorrelation r[l]
-    }
+  		/// \HECHO Compute the autocorrelation r[l]
+      for (int n = 0; n < x.size()-l; n++){
+        r[l] += x[n]*x[n+l];
+      }
+      r[l] /= x.size();
 
-    if (r[0] == 0.0F) //to avoid log() and divide zero
-      r[0] = 1e-10;
+      if (r[0] == 0.0F){ //to avoid log() and divide zero
+        r[0] = 1e-10;
+      }
+    }
   }
 
   void PitchAnalyzer::set_window(Window win_type) {
@@ -26,9 +30,15 @@ namespace upc {
 
     switch (win_type) {
     case HAMMING:
-      /// \TODO Implement the Hamming window
+      /// \HECHO Implement the Hamming window
+      for(int n = 0; n < window.size(); n++){
+        window[n] = 0.53836-0.46164*cos((2*M_PI*n)/(window.size()-1));
+      }
       break;
     case RECT:
+      for(int n = 0; n < window.size(); n++){
+        window[n] = 1;
+      }
     default:
       window.assign(frameLen, 1);
     }
@@ -50,7 +60,17 @@ namespace upc {
     /// \TODO Implement a rule to decide whether the sound is voiced or not.
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
-    return false;
+    float deltas = 0;
+    float sgn = 0;
+    for (int i = 1; i < N; i++) {
+      sgn = x[i]*x[i-1];
+      if(sgn <= 0)
+        deltas += 1;
+    }
+    float zcr = (deltas*samplingFreq)/(2*(N-1));
+    float th = 0.5;
+    if(th >= 0.5 && zcr <= 1000)  return false;
+    else return true;
   }
 
   float PitchAnalyzer::compute_pitch(vector<float> & x) const {
@@ -72,7 +92,7 @@ namespace upc {
 
     vector<float>::const_iterator iR = r.begin(), iRMax = iR;
 
-    /// \DONE
+    /// \HECHO
 	/// Find the lag of the maximum value of the autocorrelation away from the origin.<br>
 	/// Choices to set the minimum value of the lag are:
 	///    - The first negative value of the autocorrelation.
@@ -80,7 +100,7 @@ namespace upc {
     ///	   .
 	/// In either case, the lag should not exceed that of the minimum value of the pitch.
     int pospeak = 0;
-    boolean neg = false;
+    bool neg = false;
     float maxpeak = 0;
     for (int i = 0; i < x.size(); i++) {
       if(neg == false){
