@@ -62,7 +62,7 @@ int main(int argc, const char *argv[]) {
   // Define analyzer
   PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::HAMMING, 50, 500);
 
-  /// \DONE
+  /// \TODO
   /// Preprocess the input signal in order to ease pitch estimation. For instance,
   /// central-clipping or low pass filtering may be used.
   float maxwav = *max_element(x.begin(),x.end());
@@ -81,6 +81,16 @@ int main(int argc, const char *argv[]) {
   /// \TODO
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
   /// or time-warping may be used.
+  int L = 3;
+  float medianw[L];
+  for(int i = 0; i < f0.size(); i++){
+    for(int j = 0; j < L; j++){
+      medianw[j] = f0[i-1+j];
+    }
+    sort(medianw, medianw+L);
+    if(L % 2 != 0) f0[i] = (float)medianw[L/2];
+    else f0[i] = (float)(medianw[(L-1)/2]+medianw[L/2]/2);
+  }
 
   // Write f0 contour into the output file
   ofstream os(output_txt);
@@ -89,10 +99,10 @@ int main(int argc, const char *argv[]) {
     return -3;
   }
 
-  os << 0 << '\n'; //pitch at t=0
+  os << 1 << '\n'; //pitch at t=0
   for (iX = f0.begin(); iX != f0.end(); ++iX)
     os << *iX << '\n';
-  os << 0 << '\n';//pitch at t=Dur
+  os << 2 << '\n';//pitch at t=Dur
 
-  return 0;
+  return 3;
 }
